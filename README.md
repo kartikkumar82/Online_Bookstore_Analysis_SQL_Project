@@ -1,153 +1,154 @@
-# Retail Sales Analysis SQL Project
+# Online Bookstore Management System Project
 
 ## Project Overview
 
-**Project Title**: Retail Sales Analysis  
+**Project Title**: Online Bookstore Analysis  
 **Level**: Beginner  
 **Database**: `p1_retail_db`
 
-This project is designed to demonstrate SQL skills and techniques typically used by data analysts to explore, clean, and analyze retail sales data. The project involves setting up a retail sales database, performing exploratory data analysis (EDA), and answering specific business questions through SQL queries. This project is ideal for those who are starting their journey in data analysis and want to build a solid foundation in SQL.
+An end-to-end database project for managing an online bookstore. It includes tables for books, customers, and orders, all interconnected using SQL queries. The system supports inventory tracking, order processing, and customer management.
 
 ## Objectives
-
-1. **Set up a retail sales database**: Create and populate a retail sales database with the provided sales data.
-2. **Data Cleaning**: Identify and remove any records with missing or null values.
-3. **Exploratory Data Analysis (EDA)**: Perform basic exploratory data analysis to understand the dataset.
-4. **Business Analysis**: Use SQL to answer specific business questions and derive insights from the sales data.
+🗃️ Manage book inventory (title, author, price, stock, etc.)
+👤 Track customer details and purchase history
+📦 Handle orders with date, status, and total cost
+🔍 Perform SQL queries like joins, aggregations, filtering, and more
+📈 Generate insights such as best-selling books, total revenue, etc.
 
 ## Project Structure
 
 ### 1. Database Setup
 
 - **Database Creation**: The project starts by creating a database named `p1_retail_db`.
-- **Table Creation**: A table named `retail_sales` is created to store the sales data. The table structure includes columns for transaction ID, sale date, sale time, customer ID, gender, age, product category, quantity sold, price per unit, cost of goods sold (COGS), and total sale amount.
+
+
+- **Table Creation**: A table named `Books, Customers, Orders` is created to store the sales data. The table structure includes columns for Book_ID, Title,	Author,	Genre,	Published_Year, Price, Stock in Books table and Customer_ID, Name, Email,	Phone, City, Country in Customers table and Order_ID, Customer_ID, Book_ID,	Order_Date,	Quantity, Total_Amount in Orders table.
+
 
 ```sql
-CREATE DATABASE p1_retail_db;
+CREATE DATABASE online_bookstore;
 
-CREATE TABLE retail_sales
-(
-    transactions_id INT PRIMARY KEY,
-    sale_date DATE,	
-    sale_time TIME,
-    customer_id INT,	
-    gender VARCHAR(10),
-    age INT,
-    category VARCHAR(35),
-    quantity INT,
-    price_per_unit FLOAT,	
-    cogs FLOAT,
-    total_sale FLOAT
+-- Create Tables
+DROP TABLE IF EXISTS Books;
+CREATE TABLE Books (
+    Book_ID SERIAL PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    Genre VARCHAR(50),
+    Published_Year INT,
+    Price NUMERIC(10, 2),
+    Stock INT
 );
+DROP TABLE IF EXISTS customers;
+CREATE TABLE Customers (
+    Customer_ID SERIAL PRIMARY KEY,
+    Name VARCHAR(100),
+    Email VARCHAR(100),
+    Phone VARCHAR(15),
+    City VARCHAR(50),
+    Country VARCHAR(150)
+);
+DROP TABLE IF EXISTS orders;
+CREATE TABLE Orders (
+    Order_ID SERIAL PRIMARY KEY,
+    Customer_ID INT REFERENCES Customers(Customer_ID),
+    Book_ID INT REFERENCES Books(Book_ID),
+    Order_Date DATE,
+    Quantity INT,
+    Total_Amount NUMERIC(10, 2)
+);
+
 ```
 
-### 2. Data Exploration & Cleaning
-
-- **Record Count**: Determine the total number of records in the dataset.
-- **Customer Count**: Find out how many unique customers are in the dataset.
-- **Category Count**: Identify all unique product categories in the dataset.
-- **Null Value Check**: Check for any null values in the dataset and delete records with missing data.
+### 2. Data Import
 
 ```sql
-SELECT COUNT(*) FROM retail_sales;
-SELECT COUNT(DISTINCT customer_id) FROM retail_sales;
-SELECT DISTINCT category FROM retail_sales;
+COPY Books(Book_ID, Title, Author, Genre, Published_Year, Price, Stock)
+FROM 'D:\POSTGRE SQL\ST - SQL ALL PRACTICE FILES\All Excel Practice Files\Books.csv'
+CSV HEADER;
 
-SELECT * FROM retail_sales
-WHERE 
-    sale_date IS NULL OR sale_time IS NULL OR customer_id IS NULL OR 
-    gender IS NULL OR age IS NULL OR category IS NULL OR 
-    quantity IS NULL OR price_per_unit IS NULL OR cogs IS NULL;
+COPY customers (customer_id, name, email, phone, city, country)
+FROM 'D:\POSTGRE SQL\ST - SQL ALL PRACTICE FILES\All Excel Practice Files\Customers.csv'
+CSV HEADER;
 
-DELETE FROM retail_sales
-WHERE 
-    sale_date IS NULL OR sale_time IS NULL OR customer_id IS NULL OR 
-    gender IS NULL OR age IS NULL OR category IS NULL OR 
-    quantity IS NULL OR price_per_unit IS NULL OR cogs IS NULL;
+COPY orders(order_id, customer_id, book_id, order_date, quantity, total_amount)
+FROM 'D:\POSTGRE SQL\ST - SQL ALL PRACTICE FILES\All Excel Practice Files\Orders.csv'
+CSV HEADER;
 ```
 
 ### 3. Data Analysis & Findings
 
 The following SQL queries were developed to answer specific business questions:
 
-1. **Write a SQL query to retrieve all columns for sales made on '2022-11-05**:
+1. **Retrieve all books in the "Fiction" genre**:
 ```sql
 SELECT *
-FROM retail_sales
-WHERE sale_date = '2022-11-05';
+FROM books
+WHERE genre = 'Fiction';
 ```
 
-2. **Write a SQL query to retrieve all transactions where the category is 'Clothing' and the quantity sold is more than 4 in the month of Nov-2022**:
+2. **Find books published after the year 1950**:
 ```sql
-SELECT 
-  *
-FROM retail_sales
-WHERE 
-    category = 'Clothing'
-    AND 
-    TO_CHAR(sale_date, 'YYYY-MM') = '2022-11'
-    AND
-    quantity >= 4
+SELECT *
+FROM books
+WHERE published_year > 1950;
 ```
 
-3. **Write a SQL query to calculate the total sales (total_sale) for each category.**:
+3. **Show orders placed in November 2023.**:
 ```sql
-SELECT 
-    category,
-    SUM(total_sale) as net_sale,
-    COUNT(*) as total_orders
-FROM retail_sales
-GROUP BY 1
+SELECT *
+FROM orders
+WHERE order_date BETWEEN '2023-01-01' AND '2023-11-30';
 ```
 
-4. **Write a SQL query to find the average age of customers who purchased items from the 'Beauty' category.**:
+4. **Retrieve the total number of books sold for each genre.**:
+```sql
+SELECT *
+FROM books;
+SELECT b.genre, SUM(o.quantity) AS total_quantity_sold
+FROM books b
+JOIN orders o
+ON b.book_id = o.book_id
+GROUP BY genre;
+```
+
+5. **List customers who have placed at least 2 orders.**:
+```sql
+SELECT o.customer_id, c.name, COUNT(o.quantity) AS order_count
+FROM Customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY o.customer_id, c.name
+HAVING COUNT(o.quantity)>2;
+```
+
+6. **Find the most frequently ordered book.**:
 ```sql
 SELECT
-    ROUND(AVG(age), 2) as avg_age
-FROM retail_sales
-WHERE category = 'Beauty'
+o.Book_id, b.title, COUNT(o.order_id) AS ORDER_COUNT
+FROM
+orders o
+JOIN books b
+ON o.book_id=b.book_id
+GROUP BY o.book_id, b.title
+ORDER BY ORDER_COUNT DESC
+LIMIT 1;
 ```
 
-5. **Write a SQL query to find all transactions where the total_sale is greater than 1000.**:
+7. **Find the customer who spent the most on orders**:
 ```sql
-SELECT * FROM retail_sales
-WHERE total_sale > 1000
+SELECT
+c.customer_id, c.name, SUM(o.total_amount) AS total_spend
+FROM
+orders o
+JOIN customers c
+ON c.customer_id = o.order_id
+GROUP BY c.customer_id, c.name
+ORDER BY total_spend DESC 
+LIMIT 1;
 ```
 
-6. **Write a SQL query to find the total number of transactions (transaction_id) made by each gender in each category.**:
-```sql
-SELECT 
-    category,
-    gender,
-    COUNT(*) as total_trans
-FROM retail_sales
-GROUP 
-    BY 
-    category,
-    gender
-ORDER BY 1
-```
-
-7. **Write a SQL query to calculate the average sale for each month. Find out best selling month in each year**:
-```sql
-SELECT 
-       year,
-       month,
-    avg_sale
-FROM 
-(    
-SELECT 
-    EXTRACT(YEAR FROM sale_date) as year,
-    EXTRACT(MONTH FROM sale_date) as month,
-    AVG(total_sale) as avg_sale,
-    RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) ORDER BY AVG(total_sale) DESC) as rank
-FROM retail_sales
-GROUP BY 1, 2
-) as t1
-WHERE rank = 1
-```
-
-8. **Write a SQL query to find the top 5 customers based on the highest total sales **:
+8. **Write a SQL query to find the top 5 customers based on the highest total sales**:
 ```sql
 SELECT 
     customer_id,
@@ -158,51 +159,40 @@ ORDER BY 2 DESC
 LIMIT 5
 ```
 
-9. **Write a SQL query to find the number of unique customers who purchased items from each category.**:
+9. **List the cities where customers who spent over 30 are located.**:
 ```sql
-SELECT 
-    category,    
-    COUNT(DISTINCT customer_id) as cnt_unique_cs
-FROM retail_sales
-GROUP BY category
+SELECT
+DISTINCT c.city, o.total_amount
+FROM orders o
+JOIN customers c
+ON o.customer_id=c.customer_id
+WHERE o.total_amount > 30;
 ```
 
-10. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
+10. **Calculate the stock remaining after fulfilling all orders**:
 ```sql
-WITH hourly_sale
-AS
-(
-SELECT *,
-    CASE
-        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-        ELSE 'Evening'
-    END as shift
-FROM retail_sales
-)
-SELECT 
-    shift,
-    COUNT(*) as total_orders    
-FROM hourly_sale
-GROUP BY shift
+SELECT
+b.title, b.book_id,b.stock,
+COALESCE(SUM(o.quantity),0)
+AS Order_quantity,
+  b.stock - COALESCE(SUM(o.quantity),0)
+FROM books b
+LEFT JOIN orders o
+ON b.book_id = o.book_id
+GROUP BY b.book_id
+ORDER BY book_id ASC;
 ```
 
-## Findings
-
-- **Customer Demographics**: The dataset includes customers from various age groups, with sales distributed across different categories such as Clothing and Beauty.
-- **High-Value Transactions**: Several transactions had a total sale amount greater than 1000, indicating premium purchases.
-- **Sales Trends**: Monthly analysis shows variations in sales, helping identify peak seasons.
-- **Customer Insights**: The analysis identifies the top-spending customers and the most popular product categories.
 
 ## Reports
 
-- **Sales Summary**: A detailed report summarizing total sales, customer demographics, and category performance.
-- **Trend Analysis**: Insights into sales trends across different months and shifts.
-- **Customer Insights**: Reports on top customers and unique customer counts per category.
+- **Books Summary**: A detailed report summarizing total books, author, and publisher year.
+- **Orders Analysis**: Insights into orders trends across different books and customers.
+- **Customer Insights**: Reports on top customers and unique customer counts per order.
 
 ## Conclusion
 
-This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data cleaning, exploratory data analysis, and business-driven SQL queries. The findings from this project can help drive business decisions by understanding sales patterns, customer behavior, and product performance.
+This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data importing, exploratory data analysis, and business-driven SQL queries. The findings from this project can help drive business decisions by understanding sales patterns, customer behavior, and product performance.
 
 ## How to Use
 
@@ -211,17 +201,11 @@ This project serves as a comprehensive introduction to SQL for data analysts, co
 3. **Run the Queries**: Use the SQL queries provided in the `analysis_queries.sql` file to perform your analysis.
 4. **Explore and Modify**: Feel free to modify the queries to explore different aspects of the dataset or answer additional business questions.
 
-## Author - Zero Analyst
+## Author - Kartik Kumar
 
 This project is part of my portfolio, showcasing the SQL skills essential for data analyst roles. If you have any questions, feedback, or would like to collaborate, feel free to get in touch!
 
-### Stay Updated and Join the Community
+**E-mail** : kartikkumar1800089@gmail.com
 
-For more content on SQL, data analysis, and other data-related topics, make sure to follow me on social media and join our community:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community to learn and grow together](https://discord.gg/36h5f2Z5PK)
 
 Thank you for your support, and I look forward to connecting with you!
