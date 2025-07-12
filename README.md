@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-**Project Title**: Online Bookstore Analysis  
+**Project Title**: Online Bookstore Management System  
 **Level**: Beginner  
-**Database**: `p1_retail_db`
+**Database**: `books_db, customers_db, orders_db`
 
 An end-to-end database project for managing an online bookstore. It includes tables for books, customers, and orders, all interconnected using SQL queries. The system supports inventory tracking, order processing, and customer management.
 
@@ -19,7 +19,7 @@ An end-to-end database project for managing an online bookstore. It includes tab
 
 ### 1. Database Setup
 
-- **Database Creation**: The project starts by creating a database named `p1_retail_db`.
+- **Database Creation**: The project starts by creating a database named `books_db, customers_db, orders_db`.
 
 
 - **Table Creation**: A table named `Books, Customers, Orders` is created to store the sales data. The table structure includes columns for Book_ID, Title,	Author,	Genre,	Published_Year, Price, Stock in Books table and Customer_ID, Name, Email,	Phone, City, Country in Customers table and Order_ID, Customer_ID, Book_ID,	Order_Date,	Quantity, Total_Amount in Orders table.
