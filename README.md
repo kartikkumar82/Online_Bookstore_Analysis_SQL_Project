@@ -9,10 +9,10 @@
 An end-to-end database project for managing an online bookstore. It includes tables for books, customers, and orders, all interconnected using SQL queries. The system supports inventory tracking, order processing, and customer management.
 
 ## Objectives
-🗃️ Manage book inventory (title, author, price, stock, etc.)
-👤 Track customer details and purchase history
-📦 Handle orders with date, status, and total cost
-🔍 Perform SQL queries like joins, aggregations, filtering, and more
+🗃️ Manage book inventory (title, author, price, stock, etc.).
+👤 Track customer details and purchase history.
+📦 Handle orders with date, status, and total cost.
+🔍 Perform SQL queries like joins, aggregations, filtering, and more.
 📈 Generate insights such as best-selling books, total revenue, etc.
 
 ## Project Structure
